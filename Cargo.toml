@@ -1,0 +1,50 @@
+[package]
+name = "openworker-rs"
+version = "0.1.0"
+edition = "2021"
+description = "A Rust rewrite of the OpenWorker core agent engine: model providers (OpenAI-compatible / Ollama), a tool-calling agent loop, an MCP client, memory, and automations."
+license = "MIT"
+repository = "https://github.com/andrewyng/openworker"
+
+# The crate is `openworker-rs` (to avoid clashing with upstream on crates.io), but the
+# command users actually type is `openworker`.
+[[bin]]
+name = "openworker"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+cron = "0.12"
+async-trait = "0.1"
+futures = "0.3"
+dirs = "5"
+regex = "1"
+toml = "0.8"
+serde_yaml = "0.9"
+encoding_rs = "0.8"
+# PDF skill — pure-Rust PDF text extraction (wraps `lopdf`; no C compiler / external
+# binary needed, consistent with the project's zero-C-dependency stance).
+pdf-extract = "0.12"
+# Standalone native GUI client (the `gui` subcommand). Pure-Rust egui/eframe window with
+# the OpenGL backend — no browser, no WebView2 runtime — so it builds cleanly on the MinGW
+# toolchain and ships as a single .exe.
+eframe = { version = "0.28", default-features = false, features = ["glow"] }
+
+# Console programs on Windows write text in the OEM code page (936 on Chinese Windows,
+# 932 on Japanese, ...), so we ask the OS which one before decoding their output.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Globalization"] }
+
+[dev-dependencies]
+# Same crate that `pdf-extract` already pulls in — used by `src/pdf.rs` tests to build a
+# tiny in-memory PDF (no binary fixture to commit, no C toolchain required).
+lopdf = "0.42"
+
+[profile.release]
+opt-level = 2
