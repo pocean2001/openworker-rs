@@ -1,0 +1,40 @@
+# Cargo configuration for the `x86_64-pc-windows-gnu` target.
+#
+# This file pins the linker / archiver / dlltool to a local MSYS2 MinGW-w64 install so the
+# `ring` (Crypto) and `windows-sys` (raw-dylib) crates can link. It mirrors the snippet in
+# README.md § "Windows 工具链要求".
+#
+# ── Overriding the MinGW location (MINGW_BIN) ──────────────────────────────────────
+# The three absolute paths below assume MSYS2 lives at `D:\msys64`. To build on another
+# machine, either:
+#   1. edit the three paths below, or
+#   2. (recommended) switch the linker/ar/dlltool to bare `gcc.exe` / `ar.exe` /
+#      `dlltool.exe` and let `build.sh` put MinGW on PATH for you. `build.sh` already
+#      auto-detects /d/msys64, /c/msys64, /c/mingw64, or honors `MINGW_BIN=/path/to/mingw64/bin`.
+# Example of the portable (bare-name) form is shown commented at the bottom.
+#
+# NOTE: cargo's `[env] PATH = ...` does NOT help gcc find its sibling DLLs (cc1.exe pulls
+# libisl/libmpc/libmpfr/libgmp/zlib from the `bin` dir at runtime, and Windows DLL search
+# only looks in the exe's own dir). So the MinGW `bin` dir MUST be on the process PATH —
+# `build.sh` does exactly that. Run `./build.sh build`, not a bare `cargo build`, in a clean shell.
+
+[target.x86_64-pc-windows-gnu]
+linker = "D:\\msys64\\mingw64\\bin\\gcc.exe"
+ar     = "D:\\msys64\\mingw64\\bin\\ar.exe"
+rustflags = ["-Cdlltool=D:\\msys64\\mingw64\\bin\\dlltool.exe"]
+
+[env]
+CC  = "D:\\msys64\\mingw64\\bin\\gcc.exe"
+CXX = "D:\\msys64\\mingw64\\bin\\g++.exe"
+AR  = "D:\\msys64\\mingw64\\bin\\ar.exe"
+
+# Portable alternative (use build.sh + MINGW_BIN instead of hardcoding the path):
+# [target.x86_64-pc-windows-gnu]
+# linker = "gcc.exe"
+# ar     = "ar.exe"
+# rustflags = ["-Cdlltool=dlltool.exe"]
+#
+# [env]
+# CC  = "gcc.exe"
+# CXX = "g++.exe"
+# AR  = "ar.exe"
