@@ -1,0 +1,38 @@
+# OpenWorker-rs configuration — shareable sample, safe to commit.
+#
+# Loading order when --config is omitted:
+#   1. ./openworker.local.toml   (gitignored — put real API keys here)
+#   2. ./openworker.toml         (this file)
+# Keys may also come from the environment: DEEPSEEK_API_KEY / OPENAI_API_KEY.
+
+[model]
+provider = "deepseek"        # openai | deepseek | ollama | custom
+api_key = ""                 # leave empty to read the key from the environment
+model = "deepseek-v4-flash"  # deepseek-v4-flash (fast/cheap) | deepseek-v4-pro
+# base_url = "https://api.deepseek.com/v1"
+#   Optional. Overrides the provider's default endpoint, so any OpenAI-compatible
+#   service (Qwen, GLM, Mistral, a corporate gateway, vLLM, ...) works without
+#   touching the code. Required when provider = "custom".
+
+# To run fully local with Ollama instead, use:
+# [model]
+# provider = "ollama"
+# model = "llama3"
+# (no api_key needed; "ollama" is the conventional placeholder)
+
+# Unknown keys are rejected at startup rather than silently ignored, so a typo
+# surfaces immediately instead of quietly falling back to a default.
+
+# Connect any MCP server — its tools become callable by the agent under
+# the name mcp__<server>__<tool>.
+[[mcp_servers]]
+name = "filesystem"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
+# requires_approval = true   # gate every tool from this server behind an approval prompt
+
+# Scheduled tasks (standard 5-field cron). Start the loop with: openworker automation serve
+[[automations]]
+name = "standup"
+prompt = "Summarize what changed in this repo today and draft my standup update."
+cron = "0 9 * * 1-5"
